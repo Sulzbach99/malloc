@@ -1,19 +1,13 @@
-CC=				gcc
-CFLAGS=			-g -Wall
-
-AS=				as
-ASFLAGS=		-o
-
-all:			pre-build malloc.o
-
-pre-build:
-				mkdir -p usr/lib
-
-malloc.o:
-				$(AS) src/malloc.s $(ASFLAGS) usr/lib/malloc.o
+all:
+				cd src; make; cd ..
+				mv src/*.o usr/lib
+				mkdir -p build
+				mv src/main build
 
 clean:
+				rm -f src/*.o
 				rm -f usr/lib/*
 
-purge:
-				rm -rf usr
+purge:			clean
+				rm -f src/main
+				rm -rf build
