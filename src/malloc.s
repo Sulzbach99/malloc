@@ -75,7 +75,7 @@ alocaMem:
     movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
     movq        8(%rax), %rbx          # Obtem tamanho do bloco atual
     addq        $16, %rax               # Obtem ponteiro para inicio do bloco atual
-    addq        $rbx, %rax              # Obtem ponteiro para a proxima informacao gerencial
+    addq        %rbx, %rax              # Obtem ponteiro para a proxima informacao gerencial
     movq        %rax, -8(%rbp)          # Atualiza variavel com ponteiro para proxima informacao gerencial
     jmp         loop                    # Continua no laco
   done_loop_hit:
