@@ -1,1 +1,4 @@
-usr/*
+usr/lib/*
+src/*.o
+src/main
+build
