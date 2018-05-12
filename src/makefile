@@ -1,12 +1,16 @@
+VPATH=			../$(LIB):../$(BUILD)
+
 CC=				gcc
 CFLAGS=			-g -Wall
 
 AS=				as
 ASFLAGS=		-g
 
-all:			main
+.PHONY:			all
 
-main:			main.o malloc.o
+all:			$(EXE)
+
+$(EXE):			main.o malloc.o
 
 main.o:			main.c
 malloc.o:
