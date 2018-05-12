@@ -8,6 +8,7 @@
 # variavel global, topoInicialHeap.
 ###################################################################################################################
 ###################################################################################################################
+.globl iniciaAlocador
 iniciaAlocador:
     pushq       %rbp                    # Empilha endereco-base do registro de ativacao antigo
     movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
@@ -15,7 +16,7 @@ iniciaAlocador:
     movq        $0, %rdi                # Parametro da chamada (de modo a retornar a altura atual da brk)
     syscall                             # Chamada ao sistema
     movq        %rax, topoInicialHeap   # Armazena altura da brk em topoInicialHeap
-    movq        $0, (%rax)              # Indica que o "bloco" esta livre
+#    movq        $0, (%rax)              # Indica que o "bloco" esta livre
     popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
     ret                                 # Retorna
 ###################################################################################################################
@@ -23,6 +24,7 @@ iniciaAlocador:
 # void finalizaAlocador() Executa syscall brk para restaurar o valor original da heap contido em topoInicialHeap.
 ###################################################################################################################
 ###################################################################################################################
+.globl finalizaAlocador
 finalizaAlocador:
     pushq       %rbp                    # Empilha endereco-base do registro de ativacao antigo
     movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
@@ -36,6 +38,7 @@ finalizaAlocador:
 # int liberaMem(void* bloco) indica que o bloco esta livre. (int?????????????????????????????????????????????????)
 ###################################################################################################################
 ###################################################################################################################
+.globl liberaMem
 liberaMem:
     pushq       %rbp                    # Empilha endereco-base do registro de ativacao antigo
     movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
@@ -51,6 +54,7 @@ liberaMem:
 ### retorna o endereco inicial do bloco.
 ###################################################################################################################
 ###################################################################################################################
+.globl alocaMem
 alocaMem:
     pushq       %rbp                    # Empilha endereco-base do registro de ativacao antigo
     movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
@@ -73,7 +77,7 @@ alocaMem:
     jle         done_loop_hit           # Se o bloco atual e grande o suficiente, sai do laco com status "hit"
   do_loop_stuff:
     movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
-    movq        8(%rax), %rbx          # Obtem tamanho do bloco atual
+    movq        8(%rax), %rbx           # Obtem tamanho do bloco atual
     addq        $16, %rax               # Obtem ponteiro para inicio do bloco atual
     addq        %rbx, %rax              # Obtem ponteiro para a proxima informacao gerencial
     movq        %rax, -8(%rbp)          # Atualiza variavel com ponteiro para proxima informacao gerencial
