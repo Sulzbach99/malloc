@@ -1,16 +1,16 @@
 SRC=			src
+BUILD=			usr/bin
+INCLUDE=		usr/include
 LIB=			usr/lib
 EXE=			main
-BUILD=			build
 
 .PHONY:			all $(SRC) clean purge
 
 all:			$(SRC)
 
 $(SRC):
-				$(MAKE) LIB=$(LIB) EXE=$(EXE) BUILD=$(BUILD) --directory=$@
+				$(MAKE) VPATH=../$(BUILD):../$(INCLUDE):../$(LIB) EXE=$(EXE) --directory=$@
 				-mv -f $@/*.o $(LIB) 2>/dev/null ; true
-				-mkdir -p $(BUILD)
 				-mv -f $@/$(EXE) $(BUILD) 2>/dev/null ; true
 
 clean:
@@ -19,4 +19,4 @@ clean:
 
 purge:			clean
 				-rm -f $(SRC)/$(EXE)
-				-rm -rf $(BUILD)
+				-rm -f $(BUILD)/*

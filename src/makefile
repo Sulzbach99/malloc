@@ -1,5 +1,3 @@
-VPATH=			../$(LIB):../$(BUILD)
-
 CC=				gcc
 CFLAGS=			-g -Wall
 
@@ -10,8 +8,12 @@ ASFLAGS=		-g
 
 all:			$(EXE)
 
-$(EXE):			main.o malloc.o
+$(EXE):			$(EXE).o malloc.o memmap.o
 
-main.o:			main.c
-malloc.o:
-				$(AS) malloc.s -o malloc.o $(ASFLAGS)
+$(EXE).o:		$(EXE).c common.h
+
+malloc.o:		malloc.s
+				$(AS) $< -o $@ $(ASFLAGS)
+
+memmap.o:		memmap.s
+				$(AS) $< -o $@ $(ASFLAGS)
