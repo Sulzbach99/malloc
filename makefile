@@ -4,14 +4,19 @@ INCLUDE=		usr/include
 LIB=			usr/lib
 EXE=			main
 
-.PHONY:			all $(SRC) clean purge
+.PHONY:			all pre $(SRC) post clean purge
 
-all:			$(SRC)
+all:			pre $(SRC) post
+
+pre:
+				-mkdir -p $(BUILD) $(INCLUDE) $(LIB)
 
 $(SRC):
 				$(MAKE) VPATH=../$(BUILD):../$(INCLUDE):../$(LIB) EXE=$(EXE) --directory=$@
-				-mv -f $@/*.o $(LIB) 2>/dev/null ; true
-				-mv -f $@/$(EXE) $(BUILD) 2>/dev/null ; true
+
+post:
+				-mv -f $(SRC)/*.o $(LIB) 2>/dev/null ; true
+				-mv -f $(SRC)/$(EXE) $(BUILD) 2>/dev/null ; true
 
 clean:
 				-rm -f $(SRC)/*.o
