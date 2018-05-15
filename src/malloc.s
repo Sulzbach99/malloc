@@ -113,7 +113,7 @@ alocaMem:
     movq        %rdi, %rbx              # Obtem parametro num_bytes
     movq        %rbx, (%rax)            # Estabelece tamanho do bloco alocado
     addq        $8, %rax                # Obtem ponteiro para bloco alocado
-    movq        %rax, %rdi              # Estabelece ponteiro para bloco alocado como valor de retorno
+#    movq        %rax, %rdi              # Estabelece ponteiro para bloco alocado como valor de retorno
     addq        $16, %rsp               # Desempilha variaveis locais
     popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
     ret                                 # Retorna

@@ -10,7 +10,8 @@ imprimeParte:
     pushq       %rax                    # Aloca variavel local (contador)
   for:
     movq        -8(%rbp), %rax          # Obtem contador
-    cmpq        %rax, %rsi              # Compara segundo parametro com contador
+    movq        %rsi, %rbx              # Obtem segundo parametro
+    cmpq        %rax, %rbx              # Compara segundo parametro com contador
     jle         done_for                # Se ja foram feitas as impressoes requisitadas, desvia para o final do for
     pushq       %rdi                    # Caller save do primeiro parametro
     pushq       %rsi                    # Caller save do segundo parametro
