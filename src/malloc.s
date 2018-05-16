@@ -101,8 +101,9 @@ meuAlocaMem:
     movq        8(%rax), %rsi           # Obtem tamanho do bloco
     subq        %rbx, %rsi              # Subtrai tamanho a ser alocado
     subq        $16, %rsi               # Subtrai espaco ocupado pelas informacoes gerenciais
+    addq        $16, %rax               # Obtem ponteiro para início do bloco a ser alocado
     addq        %rbx, %rax              # Obtem ponteiro para final do bloco a ser alocado e inicio do bloco livre restante
-    movq        $0, %rax                # Indica que o bloco restante esta livre
+    movq        $0, (%rax)              # Indica que o bloco restante esta livre
     movq        %rsi, 8(%rax)           # Estabelece tamanho do bloco restante
     jmp         done                    # Desvia para o final da funcao
   done_loop_miss:
