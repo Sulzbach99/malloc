@@ -64,6 +64,8 @@ imprMapa:
     movq        %rbx, -16(%rbp)         # Atualiza variavel local
     jmp         loop                    # Desvia para inicio do loop
   done_loop:
+    movq        $10, %rdi               # Estabelece parametro ('\n' - newline)
+    call        putchar                 # Imprime newline '\n'
     addq        $16, %rsp               # Desempilha variavel local
     popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
     ret                                 # Retorna
