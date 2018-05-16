@@ -2,6 +2,8 @@
 .section    .data
     .globl topoInicialHeap
     topoInicialHeap:  .quad 0
+    .globl isRunning
+    isRunning:        .quad 0
 .section    .text
 ###################################################################################################################
 # void iniciaAlocador() Executa syscall brk para obter o endereco do topo corrente da heap e o armazena em uma
@@ -33,8 +35,8 @@ finalizaAlocador:
 ###################################################################################################################
 # int liberaMem(void* bloco) indica que o bloco esta livre. (int?????????????????????????????????????????????????)
 ###################################################################################################################
-.globl liberaMem
-liberaMem:
+.globl meuLiberaMem
+meuLiberaMem:
     pushq       %rbp                    # Empilha endereco-base do registro de ativacao antigo
     movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
     movq        $0, -16(%rdi)           # Indica que o bloco esta livre
@@ -47,10 +49,17 @@ liberaMem:
 ### 3. Se nao encontrar, abre espaco para um novo bloco usando a syscall brk, indica que o bloco esta ocupado e
 ### retorna o endereco inicial do bloco.
 ###################################################################################################################
-.globl alocaMem
-alocaMem:
+.globl meuAlocaMem
+meuAlocaMem:
     pushq       %rbp                    # Empilha endereco-base do registro de ativacao antigo
     movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
+    movq        $0, %rax                # Obtem 0 (que indica !isRunning)
+    movq        isRunning, %rbx         # Obtem isRunning
+    cmpq        %rax, %rbx              # Verifica o valor de isRunning (se o alocador ja foi iniciado)
+    jne         start                   # Se o alocador foi iniciado, desvia para o comeco, efetivamente
+    call        iniciaAlocador          # Se não, inicia o alocador
+    movq        $1, isRunning           # Indica que o alocador foi iniciado
+  start:
     movq        topoInicialHeap, %rax   # Obtem topoInicialHeap
     pushq       %rax                    # Aloca variavel local que aponta para a primeira informacao gerencial
     pushq       %rdi                    # Caller save do parametro num_bytes

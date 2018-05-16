@@ -26,8 +26,8 @@ imprimeParte:
     addq        $8, %rsp                # Desempilha variavel local
     popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
     ret                                 # Retorna
-.globl imprimeMapaMem
-imprimeMapaMem:
+.globl imprMapa
+imprMapa:
     pushq       %rbp                    # Empilha endereco-base do registro de ativacao antigo
     movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
     movq        $12, %rax               # ID do servico brk

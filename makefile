@@ -2,7 +2,7 @@ SRC=			src
 BUILD=			usr/bin
 INCLUDE=		usr/include
 LIB=			usr/lib
-EXE=			main
+EXE=			teste
 
 .PHONY:			all pre $(SRC) post clean purge
 
