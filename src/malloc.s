@@ -122,8 +122,7 @@ meuAlocaMem:
     movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial alocada
     movq        $1, (%rax)              # Indica que o bloco alocado esta ocupado
     addq        $8, %rax                # Obtem ponteiro para tamanho do bloco alocado
-    movq        %rdi, %rbx              # Obtem parametro num_bytes
-    movq        %rbx, (%rax)            # Estabelece tamanho do bloco alocado
+    movq        %rdi, (%rax)            # Estabelece tamanho do bloco alocado (num_bytes)
     addq        $8, %rax                # Obtem ponteiro para bloco alocado
 #    movq        %rax, %rdi              # Estabelece ponteiro para bloco alocado como valor de retorno
     addq        $16, %rsp               # Desempilha variaveis locais
