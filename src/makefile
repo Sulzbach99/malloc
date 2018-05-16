@@ -8,9 +8,12 @@ ASFLAGS=		-g
 
 all:			$(EXE)
 
-$(EXE):			$(EXE).o malloc.o memmap.o
+$(EXE):			$(EXE).o common.o malloc.o memmap.o
 
 $(EXE).o:		$(EXE).c common.h
+
+common.o:		common.s
+				$(AS) $< -o $@ $(ASFLAGS)
 
 malloc.o:		malloc.s
 				$(AS) $< -o $@ $(ASFLAGS)

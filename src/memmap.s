@@ -30,9 +30,7 @@ imprimeParte:
 imprMapa:
     pushq       %rbp                    # Empilha endereco-base do registro de ativacao antigo
     movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
-    movq        $12, %rax               # ID do servico brk
-    movq        $0, %rdi                # Parametro da chamada (de modo a retornar a altura atual da brk)
-    syscall                             # Chamada ao sistema
+    call        brkGet                  # Obtem ponteiro para final da heap
     pushq       %rax                    # Empilha variavel local apontando para final da heap
     movq        topoInicialHeap, %rax   # Obtem ponteiro para inicio da heap
     pushq       %rax                    # Empilha variavel local apontando para inicio da heap

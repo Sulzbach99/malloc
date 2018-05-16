@@ -1,5 +1,8 @@
 #include <stdio.h>
 
+long int brkGet();
+void brkUpdate(long int new_value);
+
 void iniciaAlocador();
 /* Executa syscall brk para obter o endereco do topo corrente da heap e o armazena em uma variavel global, topoInicialHeap. */
 

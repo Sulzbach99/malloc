@@ -13,9 +13,7 @@
 iniciaAlocador:
     pushq       %rbp                    # Empilha endereco-base do registro de ativacao antigo
     movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
-    movq        $12, %rax               # ID do servico brk
-    movq        $0, %rdi                # Parametro da chamada (de modo a retornar a altura atual da brk)
-    syscall                             # Chamada ao sistema
+    call        brkGet                  # Obtem ponteiro para final da heap
     movq        %rax, topoInicialHeap   # Armazena altura da brk em topoInicialHeap
 #    movq        $0, (%rax)              # Indica que o "bloco" esta livre
     popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
@@ -27,9 +25,8 @@ iniciaAlocador:
 finalizaAlocador:
     pushq       %rbp                    # Empilha endereco-base do registro de ativacao antigo
     movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
-    movq        $12, %rax               # ID do servico brk
-    movq        topoInicialHeap, %rdi   # Parametro da chamada (de modo a atualizar a altura da brk)
-    syscall                             # Chamada ao sistema
+    movq        topoInicialHeap, %rdi   # Estabelece parametro (topoInicialHeap)
+    call        brkUpdate               # Restaura topo inicial da heap
     popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
     ret                                 # Retorna
 ###################################################################################################################
@@ -65,9 +62,7 @@ meuAlocaMem:
     movq        topoInicialHeap, %rax   # Obtem topoInicialHeap
     pushq       %rax                    # Aloca variavel local que aponta para a primeira informacao gerencial
     pushq       %rdi                    # Caller save do parametro num_bytes
-    movq        $12, %rax               # ID do servico brk
-    movq        $0, %rdi                # Parametro da chamada (de modo a retornar a altura atual da brk)
-    syscall                             # Chamada ao sistema
+    call        brkGet                  # Obtem ponteiro para final da heap
     popq        %rdi                    # Restaura parametro num_bytes
     pushq       %rax                    # Aloca variavel local que aponta para o fim da heap
   loop:
@@ -114,9 +109,8 @@ meuAlocaMem:
     addq        $16, %rbx               # Obtem ponteiro para inicio do bloco a ser alocado
     addq        %rax, %rbx              # Obtem ponteiro para final do bloco a ser alocado
     pushq       %rdi                    # Caller save do parametro num_bytes
-    movq        $12, %rax               # ID do servico brk
     movq        %rbx, %rdi              # Parametro da chamada (de modo a atualizar a altura da brk)
-    syscall                             # Chamada ao sistema
+    call        brkUpdate               # Restaura topo inicial da heap
     popq        %rdi                    # Restaura parametro num_bytes
   done:
     movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial alocada
