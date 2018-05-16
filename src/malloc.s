@@ -57,7 +57,9 @@ meuAlocaMem:
     movq        isRunning, %rbx         # Obtem isRunning
     cmpq        %rax, %rbx              # Verifica o valor de isRunning (se o alocador ja foi iniciado)
     jne         start                   # Se o alocador foi iniciado, desvia para o comeco, efetivamente
+    pushq       %rdi                    # Caller save do parametro num_bytes
     call        iniciaAlocador          # Se não, inicia o alocador
+    popq        %rdi                    # Restaura parametro num_bytes
     movq        $1, isRunning           # Indica que o alocador foi iniciado
   start:
     movq        topoInicialHeap, %rax   # Obtem topoInicialHeap
