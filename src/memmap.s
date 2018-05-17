@@ -16,6 +16,8 @@ imprimeParte:
     pushq       %rdi                    # Caller save do primeiro parametro
     pushq       %rsi                    # Caller save do segundo parametro
     call        putchar                 # Chama funcao para imprimir caractere do primeiro parametro
+    movq        $0, %rdi
+    call        fflush
     popq        %rsi                    # Restaura segundo parametro
     popq        %rdi                    # Restaura primeiro parametro
     movq        -8(%rbp), %rax          # Obtem contador
@@ -65,6 +67,8 @@ imprMapa:
   done_loop:
     movq        $10, %rdi               # Estabelece parametro ('\n' - newline)
     call        putchar                 # Imprime newline '\n'
+    movq        $0, %rdi
+    call        fflush
     popq        %rdi                    # Desempilha variavel local com topo da heap usa como parametro
     call        brkUpdate               # Restaura topo da heap (problema com o putchar)
     addq        $16, %rsp               # Desempilha variaveis locais
