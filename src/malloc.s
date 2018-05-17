@@ -110,7 +110,7 @@ meuAlocaMem:
     addq        %rax, %rbx              # Obtem ponteiro para final do bloco a ser alocado
     pushq       %rdi                    # Caller save do parametro num_bytes
     movq        %rbx, %rdi              # Parametro da chamada (de modo a atualizar a altura da brk)
-    call        brkUpdate               # Restaura topo inicial da heap
+    call        brkUpdate               # Atualiza topo da heap
     popq        %rdi                    # Restaura parametro num_bytes
   done:
     movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial alocada

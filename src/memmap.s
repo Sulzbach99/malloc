@@ -32,8 +32,9 @@ imprMapa:
     movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
     call        brkGet                  # Obtem ponteiro para final da heap
     pushq       %rax                    # Empilha variavel local apontando para final da heap
-    movq        topoInicialHeap, %rax   # Obtem ponteiro para inicio da heap
-    pushq       %rax                    # Empilha variavel local apontando para inicio da heap
+    movq        topoInicialHeap, %rbx   # Obtem ponteiro para inicio da heap
+    pushq       %rbx                    # Empilha variavel local apontando para inicio da heap
+    pushq       %rax                    # Empilha variavel local apontando para final da heap
   loop:
     movq        -16(%rbp), %rax         # Obtem ponteiro para informacao gerencial
     movq        -8(%rbp), %rbx          # Obtem ponteiro para final da heap
@@ -64,6 +65,8 @@ imprMapa:
   done_loop:
     movq        $10, %rdi               # Estabelece parametro ('\n' - newline)
     call        putchar                 # Imprime newline '\n'
-    addq        $16, %rsp               # Desempilha variavel local
+    popq        %rdi                    # Desempilha variavel local com topo da heap usa como parametro
+    call        brkUpdate               # Restaura topo da heap (problema com o putchar)
+    addq        $16, %rsp               # Desempilha variaveis locais
     popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
     ret                                 # Retorna
