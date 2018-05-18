@@ -37,6 +37,49 @@ meuLiberaMem:
     pushq       %rbp                    # Empilha endereco-base do registro de ativacao antigo
     movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
     movq        $0, -16(%rdi)           # Indica que o bloco esta livre
+    movq        topoInicialHeap, %rax   # Obtem topoInicialHeap
+    pushq       %rax                    # Aloca variavel local que aponta para a primeira informacao gerencial
+    pushq       %rax                    # Aloca variavel local que aponta para a primeira informacao gerencial
+  while:
+    call        brkGet                  # Obtem ponteiro para final da heap
+    movq        -16(%rbp), %rbx
+    cmpq        %rax, %rbx
+    jge         done_while
+    movq        -8(%rbp), %rax
+    movq        -16(%rbp), %rbx
+    cmpq        %rax, %rbx
+    je          done_if
+    movq        -8(%rbp), %rax
+    movq        (%rax), %rax
+    movq        $0, %rbx
+    cmpq        %rax, %rbx
+    jne         done_if
+    movq        -16(%rbp), %rax
+    movq        (%rax), %rax
+    movq        $0, %rbx
+    cmpq        %rax, %rbx
+    jne         done_if
+    movq        -8(%rbp), %rax
+    movq        8(%rax), %rax
+    movq        -16(%rbp), %rbx
+    movq        8(%rbx), %rbx
+    addq        $16, %rbx
+    addq        %rax, %rbx
+    movq        -8(%rbp), %rax
+    movq        %rbx, 8(%rax)
+    movq        -8(%rbp), %rax
+    movq        %rax, -16(%rbp)
+  done_if:
+    movq        -16(%rbp), %rax
+    movq        %rax, -8(%rbp)
+    movq        -16(%rbp), %rax
+    movq        8(%rax), %rbx
+    addq        $16, %rax
+    addq        %rbx, %rax
+    movq        %rax, -16(%rbp)
+    jmp         while
+  done_while:
+    addq        $16, %rsp               # Desempilha variaveis locais
     popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
     ret                                 # Retorna
 ###################################################################################################################
