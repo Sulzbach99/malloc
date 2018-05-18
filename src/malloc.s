@@ -42,42 +42,42 @@ meuLiberaMem:
     pushq       %rax                    # Aloca variavel local que aponta para a primeira informacao gerencial
   while:
     call        brkGet                  # Obtem ponteiro para final da heap
-    movq        -16(%rbp), %rbx
-    cmpq        %rax, %rbx
-    jge         done_while
-    movq        -8(%rbp), %rax
-    movq        -16(%rbp), %rbx
-    cmpq        %rax, %rbx
-    je          done_if
-    movq        -8(%rbp), %rax
-    movq        (%rax), %rax
-    movq        $0, %rbx
-    cmpq        %rax, %rbx
-    jne         done_if
-    movq        -16(%rbp), %rax
-    movq        (%rax), %rax
-    movq        $0, %rbx
-    cmpq        %rax, %rbx
-    jne         done_if
-    movq        -8(%rbp), %rax
-    movq        8(%rax), %rax
-    movq        -16(%rbp), %rbx
-    movq        8(%rbx), %rbx
-    addq        $16, %rbx
-    addq        %rax, %rbx
-    movq        -8(%rbp), %rax
-    movq        %rbx, 8(%rax)
-    movq        -8(%rbp), %rax
-    movq        %rax, -16(%rbp)
+    movq        -16(%rbp), %rbx         # Obtem ponteiro 2
+    cmpq        %rax, %rbx              # Compara ponteiro 2 com final da heap
+    jge         done_while              # Se toda a heap foi percorrida, sai do laco
+    movq        -8(%rbp), %rax          # Obtem ponteiro 1
+    movq        -16(%rbp), %rbx         # Obtem ponteiro 2
+    cmpq        %rax, %rbx              # Compara ponteiro 2 com ponteiro 1
+    je          done_if                 # Se sao iguais, sai do if
+    movq        -8(%rbp), %rax          # Obtem ponteiro 1
+    movq        (%rax), %rax            # Obtem informacao gerencial 1
+    movq        $0, %rbx                # Obtem 0 (que indica bloco livre)
+    cmpq        %rax, %rbx              # Verifica se bloco 1 esta livre
+    jne         done_if                 # Se o bloco 1 esta ocupado, sai do if
+    movq        -16(%rbp), %rax         # Obtem ponteiro 2
+    movq        (%rax), %rax            # Obtem informacao gerencial 2
+    movq        $0, %rbx                # Obtem 0 (que indica bloco livre)
+    cmpq        %rax, %rbx              # Verifica se bloco 2 esta livre
+    jne         done_if                 # Se o bloco 2 esta ocupado, sai do if
+    movq        -8(%rbp), %rax          # Obtem ponteiro 1
+    movq        8(%rax), %rax           # Obtem tamanho 1
+    movq        -16(%rbp), %rbx         # Obtem ponteiro 2
+    movq        8(%rbx), %rbx           # Obtem tamanho 2
+    addq        $16, %rbx               # Soma ao tamanho das informacoes gerenciais
+    addq        %rax, %rbx              # Soma os tamanhos, obtendo o tamanho do bloco fundido
+    movq        -8(%rbp), %rax          # Obtem ponteiro 1
+    movq        %rbx, 8(%rax)           # Atualiza tamanho 1
+    movq        -8(%rbp), %rax          # Obtem ponteiro 1
+    movq        %rax, -16(%rbp)         # Ponteiro 2 = ponteiro 1
   done_if:
-    movq        -16(%rbp), %rax
-    movq        %rax, -8(%rbp)
-    movq        -16(%rbp), %rax
-    movq        8(%rax), %rbx
-    addq        $16, %rax
-    addq        %rbx, %rax
-    movq        %rax, -16(%rbp)
-    jmp         while
+    movq        -16(%rbp), %rax         # Obtem ponteiro 2
+    movq        %rax, -8(%rbp)          # Ponteiro 1 = ponteiro 2
+    movq        -16(%rbp), %rax         # Obtem ponteiro 2
+    movq        8(%rax), %rbx           # Obtem tamanho 2
+    addq        $16, %rax               # Soma ao tamanho das informacoes gerenciais
+    addq        %rbx, %rax              # Soma o tamanho com o ponteiro 2, apontando para a proxima informacao gerencial
+    movq        %rax, -16(%rbp)         # Atualiza ponteiro 2
+    jmp         while                   # Continua no laco
   done_while:
     addq        $16, %rsp               # Desempilha variaveis locais
     popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
