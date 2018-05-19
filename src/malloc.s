@@ -82,6 +82,101 @@ meuLiberaMem:
     popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
     ret                                 # Retorna
 ###################################################################################################################
+firstFit:
+    pushq       %rbp                    # Empilha endereco-base do registro de ativacao antigo
+    movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
+    movq        topoInicialHeap, %rax   # Obtem topoInicialHeap
+    pushq       %rax                    # Aloca variavel local que aponta para a primeira informacao gerencial
+  loop_first_fit:
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        %rsi, %rbx              # Obtem ponteiro para fim da heap
+    cmpq        %rax, %rbx              # Compara fim da heap com ponteiro para informacao gerencial atual
+    jle         first_fit_not_fit       # Se nao ha blocos liberados utilizaveis, sai do laco com status "not fit"
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        (%rax), %rax            # Obtem informacao gerencial do bloco atual
+    movq        $0, %rbx                # Obtem 0 (que indica "livre")
+    cmpq        %rax, %rbx              # Compara 0 com informacao gerencial do bloco atual
+    jne         do_loop_first_fit       # Se o bloco nao esta livre, continua no laco
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        8(%rax), %rax           # Obtem tamanho do bloco atual
+    movq        %rdi, %rbx              # Obtem parametro num_bytes
+    cmpq        %rax, %rbx              # Compara num_bytes com tamanho do bloco atual
+    jle         first_fit_fit           # Se o bloco atual e grande o suficiente, sai do laco com status "fit"
+  do_loop_first_fit:
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        8(%rax), %rbx           # Obtem tamanho do bloco atual
+    addq        $16, %rax               # Obtem ponteiro para inicio do bloco atual
+    addq        %rbx, %rax              # Obtem ponteiro para a proxima informacao gerencial
+    movq        %rax, -8(%rbp)          # Atualiza variavel com ponteiro para proxima informacao gerencial
+    jmp         loop_first_fit          # Continua no laco
+  first_fit_not_fit:
+    movq        $0, %rax                # Retorna 0 (nao ha blocos livres utilizaveis)
+    jmp         done_first_fit          # Desvia para final da funcao
+  first_fit_fit:
+    movq        -8(%rbp), %rax          # Retorna ponteiro para informacao gerencial do bloco atual
+  done_first_fit:
+    addq        $8, %rsp                # Desempilha variaveis locais
+    popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
+    ret                                 # Retorna
+###################################################################################################################
+bestFit:
+    pushq       %rbp                    # Empilha endereco-base do registro de ativacao antigo
+    movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
+    movq        topoInicialHeap, %rax   # Obtem topoInicialHeap
+    pushq       %rax                    # Aloca variavel local que aponta para a primeira informacao gerencial
+    pushq       $0                      # Aloca variavel local auxiliar
+  loop_best_fit:
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        %rsi, %rbx              # Obtem ponteiro para fim da heap
+    cmpq        %rax, %rbx              # Compara fim da heap com ponteiro para informacao gerencial atual
+    jg          done_if_best_fit_1      # Se a heap ainda não foi inteiramente percorrida, continua no laco
+    movq        -16(%rbp), %rax         # Obtem ponteiro para informacao gerencial do bloco "best fit"
+    movq        $0, %rbx                # Obtem 0 (que indica que nao ha blocos disponiveis)
+    je          best_fit_not_fit        # Se nao ha blocos liberados utilizaveis, sai do laco com status "not_fit"
+    jne         best_fit_fit            # Se ha um bloco "best fit", sai do laco com status "fit"
+  done_if_best_fit_1:
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        (%rax), %rax            # Obtem informacao gerencial do bloco atual
+    movq        $0, %rbx                # Obtem 0 (que indica "livre")
+    cmpq        %rax, %rbx              # Compara 0 com informacao gerencial do bloco atual
+    jne         do_loop_best_fit        # Se o bloco nao esta livre, continua no laco
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        8(%rax), %rax           # Obtem tamanho do bloco atual
+    movq        %rdi, %rbx              # Obtem parametro num_bytes
+    cmpq        %rax, %rbx              # Compara num_bytes com tamanho do bloco atual
+    jg          do_loop_best_fit        # Se o bloco atual nao e grande o suficiente, continua no laco
+    movq        -16(%rbp), %rax         # Obtem ponteiro para informacao gerencial do bloco "best fit"
+    movq        $0, %rbx                # Obtem 0 (que indica que nao ha blocos disponiveis para alocacao ate entao)
+    cmpq        %rax, %rbx              # Verifica se ja foi selecionado um bloco "fit"
+    jne          done_if_best_fit_2     # Se sim, vai para o fim do if
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        %rax, -16(%rbp)
+  done_if_best_fit_2:
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        8(%rax), %rax           # Obtem tamanho do bloco atual
+    movq        -16(%rbp), %rbx         # Obtem informacao gerencial do bloco "best fit"
+    movq        8(%rbx), %rbx           # Obtem tamanho do bloco "best fit"
+    cmpq        %rax, %rbx              # Compara tamanhos
+    jle         do_loop_best_fit        # Se o "best fit" ainda é "best fit", desvia para o laco
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        %rax, -16(%rbp)
+  do_loop_best_fit:
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        8(%rax), %rbx           # Obtem tamanho do bloco atual
+    addq        $16, %rax               # Obtem ponteiro para inicio do bloco atual
+    addq        %rbx, %rax              # Obtem ponteiro para a proxima informacao gerencial
+    movq        %rax, -8(%rbp)          # Atualiza variavel com ponteiro para proxima informacao gerencial
+    jmp         loop_best_fit           # Continua no laco
+  best_fit_not_fit:
+    movq        $0, %rax                # Retorna 0 (nao ha blocos livres utilizaveis)
+    jmp         done_best_fit           # Desvia para final da funcao
+  best_fit_fit:
+    movq        -16(%rbp), %rax         # Retorna ponteiro para informacao gerencial do bloco "best fit"
+  done_best_fit:
+    addq        $16, %rsp               # Desempilha variaveis locais
+    popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
+    ret                                 # Retorna
+###################################################################################################################
 # void* alocaMem(int num_bytes)
 ### 1. Procura um bloco livre com tamanho maior ou igual a num_bytes.
 ### 2. Se encontrar, indica que o bloco esta ocupado e retorna o endereco inicial do bloco;
@@ -101,90 +196,37 @@ meuAlocaMem:
     popq        %rdi                    # Restaura parametro num_bytes
     movq        $1, isRunning           # Indica que o alocador foi iniciado
   start:
-    movq        topoInicialHeap, %rax   # Obtem topoInicialHeap
-    pushq       %rax                    # Aloca variavel local que aponta para a primeira informacao gerencial
     pushq       %rdi                    # Caller save do parametro num_bytes
     call        brkGet                  # Obtem ponteiro para final da heap
     popq        %rdi                    # Restaura parametro num_bytes
     pushq       %rax                    # Aloca variavel local que aponta para o fim da heap
-    pushq       $0                      # Aloca variavel local auxiliar
-  loop:
-  ##############################################################################################################
-  # FIRST FIT:
-  ##############################################################################################################
-  #  movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
-  #  movq        -16(%rbp), %rbx         # Obtem ponteiro para fim da heap
-  #  cmpq        %rax, %rbx              # Compara fim da heap com ponteiro para informacao gerencial atual
-  #  jle         done_loop_not_fit       # Se nao ha blocos liberados utilizaveis, sai do laco com status "miss"
-  #  movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
-  #  movq        (%rax), %rax            # Obtem informacao gerencial do bloco atual
-  #  movq        $0, %rbx                # Obtem 0 (que indica "livre")
-  #  cmpq        %rax, %rbx              # Compara 0 com informacao gerencial do bloco atual
-  #  jne         do_loop_stuff           # Se o bloco nao esta livre, continua no laco
-  #  movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
-  #  movq        8(%rax), %rax           # Obtem tamanho do bloco atual
-  #  movq        %rdi, %rbx              # Obtem parametro num_bytes
-  #  cmpq        %rax, %rbx              # Compara num_bytes com tamanho do bloco atual
-  #  jle         done_loop_fit           # Se o bloco atual e grande o suficiente, sai do laco com status "hit"
-  #do_loop_stuff:
-  #  movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
-  #  movq        8(%rax), %rbx           # Obtem tamanho do bloco atual
-  #  addq        $16, %rax               # Obtem ponteiro para inicio do bloco atual
-  #  addq        %rbx, %rax              # Obtem ponteiro para a proxima informacao gerencial
-  #  movq        %rax, -8(%rbp)          # Atualiza variavel com ponteiro para proxima informacao gerencial
-  #  jmp         loop                    # Continua no laco
-  ##############################################################################################################
-  # BEST FIT:
-  ##############################################################################################################
-    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
-    movq        -16(%rbp), %rbx         # Obtem ponteiro para fim da heap
-    cmpq        %rax, %rbx              # Compara fim da heap com ponteiro para informacao gerencial atual
-    jg          done_if_aloca1          # Se a heap ainda não foi inteiramente percorrida, continua no laco
-    movq        -24(%rbp), %rax         # Obtem ponteiro para informacao gerencial do bloco "best fit"
-    movq        $0, %rbx                # Obtem 0 (que indica que nao ha blocos disponiveis)
-    jne         done_loop_fit           # Se ha um bloco "best fit", sai do laco com status "fit"
-    je          done_loop_not_fit       # Se nao ha blocos liberados utilizaveis, sai do laco com status "not_fit"
-  done_if_aloca1:
-    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
-    movq        (%rax), %rax            # Obtem informacao gerencial do bloco atual
-    movq        $0, %rbx                # Obtem 0 (que indica "livre")
-    cmpq        %rax, %rbx              # Compara 0 com informacao gerencial do bloco atual
-    jne         do_loop_stuff           # Se o bloco nao esta livre, continua no laco
-    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
-    movq        8(%rax), %rax           # Obtem tamanho do bloco atual
-    movq        %rdi, %rbx              # Obtem parametro num_bytes
-    cmpq        %rax, %rbx              # Compara num_bytes com tamanho do bloco atual
-    jg          do_loop_stuff           # Se o bloco atual nao e grande o suficiente, continua no laco
-    movq        -24(%rbp), %rax         # Obtem ponteiro para informacao gerencial do bloco "best fit"
-    movq        $0, %rbx                # Obtem 0 (que indica que nao ha blocos disponiveis para alocacao ate entao)
-    cmpq        %rax, %rbx              # Verifica se ja foi selecionado um bloco "fit"
-    jne          done_if_aloca2         # Se sim, vai para o fim do if
-    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
-    movq        %rax, -24(%rbp)
-  done_if_aloca2:
-    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
-    movq        8(%rax), %rax           # Obtem tamanho do bloco atual
-    movq        -24(%rbp), %rbx         # Obtem informacao gerencial do bloco "best fit"
-    movq        8(%rbx), %rbx           # Obtem tamanho do bloco "best fit"
-    cmpq        %rax, %rbx              # Compara tamanhos
-    jg          do_loop_stuff
-    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
-    movq        %rax, -24(%rbp)
-  do_loop_stuff:
-    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
-    movq        8(%rax), %rbx           # Obtem tamanho do bloco atual
-    addq        $16, %rax               # Obtem ponteiro para inicio do bloco atual
-    addq        %rbx, %rax              # Obtem ponteiro para a proxima informacao gerencial
-    movq        %rax, -8(%rbp)          # Atualiza variavel com ponteiro para proxima informacao gerencial
-    jmp         loop                    # Continua no laco
-  ##############################################################################################################
-  done_loop_fit:
-    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial
+    movq        -8(%rbp), %rsi
+    pushq       %rdi                    # Caller save do parametro num_bytes
+    call        bestFit                # Chama funcao para encontrar bloco livre
+    popq        %rdi                    # Restaura parametro num_bytes
+    pushq       %rax
+    movq        -16(%rbp), %rax
+    movq        $0, %rbx
+    cmpq        %rax, %rbx
+    jne         fit
+    movq        %rdi, %rax              # Obtem parametro num_bytes
+    movq        -8(%rbp), %rbx          # Obtem ponteiro para topo atual da heap
+    addq        $16, %rbx               # Obtem ponteiro para inicio do bloco a ser alocado
+    addq        %rax, %rbx              # Obtem ponteiro para final do bloco a ser alocado
+    pushq       %rdi                    # Caller save do parametro num_bytes
+    movq        %rbx, %rdi              # Parametro da chamada (de modo a atualizar a altura da brk)
+    call        brkUpdate               # Atualiza topo da heap
+    popq        %rdi                    # Restaura parametro num_bytes
+    movq        -8(%rbp), %rax
+    movq        %rax, -16(%rbp)
+    jmp         done                    # Desvia para o final da funcao
+  fit:
+    movq        -16(%rbp), %rax         # Obtem ponteiro para informacao gerencial
     movq        8(%rax), %rax           # Obtem tamanho do bloco
     movq        %rdi, %rbx              # Obtem parametro num_bytes
     cmpq        %rax, %rbx              # Compara num_bytes com tamanho do bloco
     je          done                    # Se o bloco tem o tamanho certo, desvia para o fim da funcao
-    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial
+    movq        -16(%rbp), %rax         # Obtem ponteiro para informacao gerencial
     movq        %rdi, %rbx              # Obtem parametro num_bytes
     movq        8(%rax), %rsi           # Obtem tamanho do bloco
     subq        %rbx, %rsi              # Subtrai tamanho a ser alocado
@@ -193,23 +235,13 @@ meuAlocaMem:
     addq        %rbx, %rax              # Obtem ponteiro para final do bloco a ser alocado e inicio do bloco livre restante
     movq        $0, (%rax)              # Indica que o bloco restante esta livre
     movq        %rsi, 8(%rax)           # Estabelece tamanho do bloco restante
-    jmp         done                    # Desvia para o final da funcao
-  done_loop_not_fit:
-    movq        %rdi, %rax              # Obtem parametro num_bytes
-    movq        -16(%rbp), %rbx         # Obtem ponteiro para topo atual da heap
-    addq        $16, %rbx               # Obtem ponteiro para inicio do bloco a ser alocado
-    addq        %rax, %rbx              # Obtem ponteiro para final do bloco a ser alocado
-    pushq       %rdi                    # Caller save do parametro num_bytes
-    movq        %rbx, %rdi              # Parametro da chamada (de modo a atualizar a altura da brk)
-    call        brkUpdate               # Atualiza topo da heap
-    popq        %rdi                    # Restaura parametro num_bytes
   done:
-    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial alocada
+    movq        -16(%rbp), %rax         # Obtem ponteiro para informacao gerencial alocada
     movq        $1, (%rax)              # Indica que o bloco alocado esta ocupado
     addq        $8, %rax                # Obtem ponteiro para tamanho do bloco alocado
     movq        %rdi, (%rax)            # Estabelece tamanho do bloco alocado (num_bytes)
     addq        $8, %rax                # Obtem ponteiro para bloco alocado
-    addq        $24, %rsp               # Desempilha variaveis locais
+    addq        $16, %rsp               # Desempilha variaveis locais
     popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
     ret                                 # Retorna
 ###################################################################################################################
