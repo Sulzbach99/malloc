@@ -1,7 +1,9 @@
 # 5.1 implemente o algoritmo proposto na seção 5.1.2 em assembly
 .section    .data
+    .equ    FIT_ALGORITHM, bestFit
     .globl topoInicialHeap
     topoInicialHeap:  .quad 0
+    inicioNextFit:    .quad 0
     .globl isRunning
     isRunning:        .quad 0
 .section    .text
@@ -15,6 +17,7 @@ iniciaAlocador:
     movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
     call        brkGet                  # Obtem ponteiro para final da heap
     movq        %rax, topoInicialHeap   # Armazena altura da brk em topoInicialHeap
+    movq        %rax, inicioNextFit     # Armazena altura da brk em inicioNextFit (usado apenas no "next fit")
     popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
     ret                                 # Retorna
 ###################################################################################################################
@@ -132,6 +135,7 @@ bestFit:
     jg          done_if_best_fit_1      # Se a heap ainda não foi inteiramente percorrida, continua no laco
     movq        -16(%rbp), %rax         # Obtem ponteiro para informacao gerencial do bloco "best fit"
     movq        $0, %rbx                # Obtem 0 (que indica que nao ha blocos disponiveis)
+    cmpq        %rax, %rbx
     je          best_fit_not_fit        # Se nao ha blocos liberados utilizaveis, sai do laco com status "not_fit"
     jne         best_fit_fit            # Se ha um bloco "best fit", sai do laco com status "fit"
   done_if_best_fit_1:
@@ -177,6 +181,56 @@ bestFit:
     popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
     ret                                 # Retorna
 ###################################################################################################################
+nextFit:
+    pushq       %rbp                    # Empilha endereco-base do registro de ativacao antigo
+    movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
+    movq        inicioNextFit, %rax     # Obtem inicioNextFit
+    pushq       %rax                    # Aloca variavel local que aponta para a primeira informacao gerencial
+  loop_next_fit:
+    movq        topoInicialHeap, %rax
+    movq        %rsi, %rbx              # Obtem ponteiro para fim da heap
+    cmpq        %rax, %rbx
+    je          next_fit_not_fit
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        (%rax), %rax            # Obtem informacao gerencial do bloco atual
+    movq        $0, %rbx                # Obtem 0 (que indica "livre")
+    cmpq        %rax, %rbx              # Compara 0 com informacao gerencial do bloco atual
+    jne         do_loop_next_fit        # Se o bloco nao esta livre, continua no laco
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        8(%rax), %rax           # Obtem tamanho do bloco atual
+    movq        %rdi, %rbx              # Obtem parametro num_bytes
+    cmpq        %rax, %rbx              # Compara num_bytes com tamanho do bloco atual
+    jle         next_fit_fit            # Se o bloco atual e grande o suficiente, sai do laco com status "fit"
+  do_loop_next_fit:
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        8(%rax), %rbx           # Obtem tamanho do bloco atual
+    addq        $16, %rax               # Obtem ponteiro para inicio do bloco atual
+    addq        %rbx, %rax              # Obtem ponteiro para a proxima informacao gerencial
+    movq        %rax, -8(%rbp)          # Atualiza variavel com ponteiro para proxima informacao gerencial
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        %rsi, %rbx
+    cmpq        %rax, %rbx              # Compara fim da heap com ponteiro para informacao gerencial atual
+    jg          done_if_next_fit
+    movq        topoInicialHeap, %rax
+    movq        %rax, -8(%rbp)
+  done_if_next_fit:
+    movq        -8(%rbp), %rax          # Obtem ponteiro para informacao gerencial do bloco atual
+    movq        inicioNextFit, %rbx
+    cmpq        %rax, %rbx
+    je          next_fit_not_fit
+    jmp         loop_next_fit           # Continua no laco
+  next_fit_not_fit:
+    movq        $0, %rax                # Retorna 0 (nao ha blocos livres utilizaveis)
+    jmp         done_next_fit           # Desvia para final da funcao
+  next_fit_fit:
+    movq        -8(%rbp), %rax          # Retorna ponteiro para informacao gerencial do bloco atual
+  done_next_fit:
+    movq        -8(%rbp), %rbx
+    movq        %rbx, inicioNextFit
+    addq        $8, %rsp                # Desempilha variaveis locais
+    popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
+    ret                                 # Retorna
+###################################################################################################################
 # void* alocaMem(int num_bytes)
 ### 1. Procura um bloco livre com tamanho maior ou igual a num_bytes.
 ### 2. Se encontrar, indica que o bloco esta ocupado e retorna o endereco inicial do bloco;
@@ -202,7 +256,7 @@ meuAlocaMem:
     pushq       %rax                    # Aloca variavel local que aponta para o fim da heap
     movq        -8(%rbp), %rsi
     pushq       %rdi                    # Caller save do parametro num_bytes
-    call        bestFit                # Chama funcao para encontrar bloco livre
+    call        FIT_ALGORITHM           # Chama funcao para encontrar bloco livre
     popq        %rdi                    # Restaura parametro num_bytes
     pushq       %rax
     movq        -16(%rbp), %rax
