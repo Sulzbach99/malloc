@@ -2,7 +2,7 @@ SRC=			src
 BUILD=			usr/bin
 INCLUDE=		usr/include
 LIB=			usr/lib
-EXE=			teste
+EXE=			testeMalloc
 
 .PHONY:			all pre $(SRC) post clean purge
 

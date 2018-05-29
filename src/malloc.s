@@ -278,6 +278,18 @@ meuAlocaMem:
     je          done                    # Se o bloco tem o tamanho certo, desvia para o fim da funcao
     movq        -16(%rbp), %rax         # Obtem ponteiro para informacao gerencial
     movq        %rdi, %rbx              # Obtem parametro num_bytes
+    movq        8(%rax), %rax           # Obtem tamanho do bloco
+    subq        %rbx, %rax              # Subtrai tamanho a ser alocado
+    movq        $16, %rbx               # Obtem 16 (espaco a ser ocupado pelas informacoes gerenciais)
+    cmpq        %rax, %rbx              # Verifica se o bloco restante e grande o suficiente
+    jl          proceed                 # Se sim, continua a configuracao do bloco restante
+    movq        -16(%rbp), %rax         # Obtem ponteiro para informacao gerencial
+    movq        8(%rax), %rax           # Obtem tamanho do bloco
+    movq        %rax, %rdi              # Assume que o tamanho do bloco a ser alocado e o mesmo do bloco antes vazio
+    jmp         done                    # Desvia para o fim da funcao
+  proceed:
+    movq        -16(%rbp), %rax         # Obtem ponteiro para informacao gerencial
+    movq        %rdi, %rbx              # Obtem parametro num_bytes
     movq        8(%rax), %rsi           # Obtem tamanho do bloco
     subq        %rbx, %rsi              # Subtrai tamanho a ser alocado
     subq        $16, %rsi               # Subtrai espaco ocupado pelas informacoes gerenciais
