@@ -29,10 +29,7 @@ int main ( int argc, char** argv ) {
   // inicia a metade superior do conjunto de elementos
   for ( i=0; i<MAX_ELEM/2; i++ ) {
     tam = rand () % TAM_MAX;  // tam = [0..TAM_MAX]
-    printf("Alocando %d bytes em vetor[%d]\n", tam, i );
-    fflush(0);
     vetor[i] = malloc (tam+1); 
-    imprMapa ();
   }
 
   // Ser�o tentadas NUM_OPER opera��es de alocacao/liberacao 
@@ -43,34 +40,26 @@ int main ( int argc, char** argv ) {
         { 
           tam = rand () % TAM_MAX;  // tam = [0..TAM_MAX]
           printf("Alocando %d bytes em vetor[%d]\n", tam, j );
-          fflush(0);
           vetor[j] = malloc (tam+1);
-          imprMapa ();
         } 
       else
         {
           printf("Liberando vetor[%d]\n", j );
-          fflush(0);
           free ( vetor[j] );
           vetor[j] = NULL;
-          imprMapa ();
         }
     }    
 
   // ---------
-  // imprMapa ();
+  imprMapa ();
   // ---------
 
   for (i=0; i<MAX_ELEM; i++)
-    if (vetor[i] != NULL) {
-      printf("Liberando vetor[%d]\n", i );
-      fflush(0);
+    if (vetor[i] != NULL)
       free (vetor[i]);
-      imprMapa ();
-    }
 
   // ---------
-  // imprMapa ();
+  imprMapa ();
   // ---------
 
 

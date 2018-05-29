@@ -15,6 +15,9 @@
 iniciaAlocador:
     pushq       %rbp                    # Empilha endereco-base do registro de ativacao antigo
     movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
+    movq        $_IO_2_1_stdout_, %rdi  # Configura primeiro parametro (stdout)
+    movq        $0, %rsi                # Configura segundo parametro (NULL)
+    call        setbuf                  # Chama setbuf para configurar a escrita para stdout como "unbuffered"
     call        brkGet                  # Obtem ponteiro para final da heap
     movq        %rax, topoInicialHeap   # Armazena altura da brk em topoInicialHeap
     movq        %rax, inicioNextFit     # Armazena altura da brk em inicioNextFit (usado apenas no "next fit")
