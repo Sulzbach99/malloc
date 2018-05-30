@@ -32,6 +32,8 @@ finalizaAlocador:
     movq        %rsp, %rbp              # Atualiza ponteiro para endereco-base do registro de ativacao atual
     movq        topoInicialHeap, %rdi   # Estabelece parametro (topoInicialHeap)
     call        brkUpdate               # Restaura topo inicial da heap
+    movq        $_IO_2_1_stdout_, %rdi  # Configura primeiro parametro (stdout)
+    call        setlinebuf              # Chama setlinebuf para configurar a escrita para stdout como "line buffered"
     popq        %rbp                    # Desmonta registro de ativacao atual e restaura ponteiro para o antigo
     ret                                 # Retorna
 ###################################################################################################################
